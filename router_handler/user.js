@@ -90,5 +90,36 @@ exports.RegisterHandel = (req, res) => {
  * @method 登录接口处理函数
  */
 exports.LoginHandel = (req, res) => {
-    res.send('login OK')
+    const sql = `select * from ev_users where username=?`
+    db.query(sql, req.body.username, (err, result) => {
+        if (err) return res.cc(err)
+        if (result.length !== 1) return res.cc('登录失败,用户名不存在!')
+
+        // 将用户和数据库中的密码进行对比 返回布尔值
+        const compareResult = bcrypt.compareSync(req.body.password, result[0].password)
+        if (!compareResult) return res.cc('登录失败,密码错误！')
+
+        // 生成 JWT 的 Token 字符串
+        const jwt = require('jsonwebtoken')
+        const config = require('../config')
+        // 去除敏感信息及图片
+        const user = { ...result[0], password: '', avatar: '' }
+        const tokenStr = jwt.sign(user, config.jwtSecretKey, { expiresIn: '12h' })
+        res.send({
+            status: 0,
+            message: '登录成功',
+            token: 'Bearer ' + tokenStr
+        })
+    })
 }
+
+/**
+ * @method 登录验证码
+ */
+const svgCaptcha = require('svg-captcha')
+exports.loginCodeHandel = (req, res) => {
+    const captcha = svgCaptcha.create()
+    console.log(captcha.text)
+    res.type('svg').send(captcha.data)
+}
+
