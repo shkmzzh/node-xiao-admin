@@ -14,7 +14,7 @@ router.post('/register', expressJoi(register_schema), RegisterHandel)
 router.post('/sendcode', expressJoi(code_schema), CodeHandel)
 
 // 登录
-router.post('/login', expressJoi(register_schema), LoginHandel)
+router.post('/login', LoginHandel)
 
 // 登录验证码
 

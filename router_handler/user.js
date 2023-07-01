@@ -66,7 +66,7 @@ exports.RegisterHandel = (req, res) => {
   const codesql = `SELECT email_code FROM ev_code`
   db.query(codesql, (err, result) => {
     if (err) return res.cc(err)
-    if (result[0].code !== req.body.code) return res.cc('验证码错误，请重新获取！')
+    if (result.length !== 1 || result[0].code !== req.body.code) return res.cc('验证码错误，请重新获取！')
 
     // 验证码一致，进行注册逻辑
     const sql = `select * from ev_users where  username=? or email=?`
@@ -89,25 +89,35 @@ exports.RegisterHandel = (req, res) => {
  * @method 登录接口处理函数
  */
 exports.LoginHandel = (req, res) => {
-  const sql = `select * from ev_users where username=?`
-  db.query(sql, req.body.username, (err, result) => {
+  // 验证验证码
+  const sqlVerifyCaptcha = `SELECT captcha FROM ev_code`
+  db.query(sqlVerifyCaptcha, (err, result) => {
     if (err) return res.cc(err)
-    if (result.length !== 1) return res.cc('登录失败,用户名不存在!')
+    if (result.length !== 1 || req.body.captcha !== result[0].captcha) {
+      return res.cc('验证码错误')
+    }
 
-    // 将用户和数据库中的密码进行对比 返回布尔值
-    const compareResult = bcrypt.compareSync(req.body.password, result[0].password)
-    if (!compareResult) return res.cc('登录失败,密码错误！')
+    // 验证用户名和密码
+    const sql = `select * from ev_users where username=?`
+    db.query(sql, req.body.username, (err, result) => {
+      if (err) return res.cc(err)
+      if (result.length !== 1) return res.cc('登录失败,用户名不存在!')
 
-    // 生成 JWT 的 Token 字符串
-    const jwt = require('jsonwebtoken')
-    const config = require('../config')
-    // 去除敏感信息及图片
-    const user = { ...result[0], password: '', avatar: '' }
-    const tokenStr = jwt.sign(user, config.jwtSecretKey, { expiresIn: '12h' })
-    res.send({
-      status: 0,
-      message: '登录成功',
-      token: 'Bearer ' + tokenStr
+      // 将用户和数据库中的密码进行对比 返回布尔值
+      const compareResult = bcrypt.compareSync(req.body.password, result[0].password)
+      if (!compareResult) return res.cc('登录失败,密码错误！')
+
+      // 生成 JWT 的 Token 字符串
+      const jwt = require('jsonwebtoken')
+      const config = require('../config')
+      // 去除敏感信息及图片
+      const user = { ...result[0], password: '', avatar: '' }
+      const tokenStr = jwt.sign(user, config.jwtSecretKey, { expiresIn: '12h' })
+      res.send({
+        status: 0,
+        message: '登录成功',
+        token: 'Bearer ' + tokenStr
+      })
     })
   })
 }
@@ -120,7 +130,7 @@ const svgCaptcha = require('svg-captcha')
 exports.loginCodeHandel = (req, res) => {
   const options = {
     color: true, // 启用颜色
-    background: '#ccffff', // 设置背景颜色
+    background: '#98c7f8', // 设置背景颜色
     size: 4, // 验证码长度
     noise: 3 // 噪点数量
   }
