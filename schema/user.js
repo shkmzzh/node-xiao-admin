@@ -6,13 +6,22 @@ exports.register_schema = {
         username: Joi.string().alphanum().min(1).max(10).required(),
         password: Joi.string().pattern(/^[\S]{6,12}$/).required(),
         email: Joi.string().email().required(),
-        code:Joi.required(),
+        code:Joi.string().min(4).max(6).required(),
     }
 }
 
-// 验证码规则
-exports.code_schema ={
+// 邮箱验证码规则
+exports.email_schema ={
     body:{
-        code:Joi.string().min(4).max(6).required()
+        email: Joi.string().email().required(),
+    }
+}
+
+// 登录表单验证
+exports.login_schema = {
+    body: {
+        username: Joi.string().alphanum().min(1).max(10).required(),
+        password: Joi.string().pattern(/^[\S]{6,12}$/).required(),
+        captcha:Joi.string().min(4).max(6).required()
     }
 }
