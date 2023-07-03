@@ -20,40 +20,40 @@ function getRandomCode(length) {
   return code
 }
 exports.CodeHandel = (req, res) => {
-  const checkEmailSql = `SELECT email FROM ev_users WHERE email = ?`
+  const checkEmailSql = `SELECT email FROM sys_user WHERE email = ?`
   db.query(checkEmailSql, req.body.email, (err, result) => {
     if (err) return res.cc(err)
     if (result.length > 0) return res.cc('该邮箱已注册！')
-  })
-  const code = getRandomCode(6)
-  // 发送邮件给用户邮箱
-  const transporter = nodemailer.createTransport({
-    service: '163',
-    auth: {
-      user: 'shkmzzh@163.com',
-      pass: 'ICSLULMOCURWYCEH'
+
+    const code = getRandomCode(6)
+    // 发送邮件给用户邮箱
+    const transporter = nodemailer.createTransport({
+      service: '163',
+      auth: {
+        user: 'shkmzzh@163.com',
+        pass: 'ICSLULMOCURWYCEH'
+      }
+    })
+    const mailOptions = {
+      from: 'shkmzzh@163.com',
+      to: req.body.email,
+      subject: '验证码',
+      text: `尊敬的用户欢迎使用 xiaoAdmin 后台管理系统，你的注册验证码为：<strong>${code}</strong>`
     }
-  })
-  const mailOptions = {
-    from: 'shkmzzh@163.com',
-    to: req.body.email,
-    subject: '验证码',
-    text: `尊敬的用户欢迎使用 xiaoAdmin 后台管理系统，你的注册验证码为：<strong>${code}</strong>`
-  }
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.log(err)
-      return res.cc('邮箱验证码发送失败！')
-    } else {
-      console.log('Email sent: ' + info.response)
-      const sql = `update ev_code set email_code=?`
-      // 存储验证码到数据库或缓存中
-      db.query(sql, code, (err, result) => {
-        if (err) return res.cc(err)
-        if (result.affectedRows !== 1) return res.cc(`验证码失效,请重试`)
-        return res.cc('验证码已发送，请注意查收！', 0)
-      })
-    }
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.log(err)
+        return res.cc('邮箱验证码发送失败！')
+      } else {
+        console.log('Email sent: ' + info.response)
+        const sql = `update sys_code set email_code=?`
+        db.query(sql, code, (err, result) => {
+          if (err) return res.cc(err)
+          if (result.affectedRows !== 1) return res.cc(`验证码失效,请重试`)
+          return res.cc('验证码已发送，请注意查收！', 0)
+        })
+      }
+    })
   })
 }
 
@@ -63,20 +63,20 @@ exports.CodeHandel = (req, res) => {
 
 exports.RegisterHandel = (req, res) => {
   // 查询数据库中验证码
-  const codesql = `SELECT email_code FROM ev_code`
+  const codesql = `SELECT email_code FROM sys_code`
   db.query(codesql, (err, result) => {
     if (err) return res.cc(err)
     if (result.length !== 1 || result[0].code !== req.body.code) return res.cc('验证码错误，请重新获取！')
 
     // 验证码一致，进行注册逻辑
-    const sql = `select * from ev_users where  username=? or email=?`
+    const sql = `select * from sys_user where  username=? or email=?`
     db.query(sql, [req.body.username, req.body.email], (err, result) => {
       if (err) return res.cc(err)
       if (result.length === 2) return res.cc('用户名与邮箱被占用，请更换后重试！')
       if (result.length === 1 && result[0].username === req.body.username) return res.cc('用户名称被占用，请更换后重试！')
       if (result.length === 1 && result[0].email === req.body.email) return res.cc('邮箱已注册，请更换后重试！')
 
-      const sql = `insert into ev_users set ?`
+      const sql = `insert into sys_user set ?`
       db.query(sql, { username: req.body.username, password: bcrypt.hashSync(req.body.password, 10), email: req.body.email }, (err, result) => {
         if (err) return res.cc(err)
         if (result.affectedRows !== 1) res.cc('注册用户失败，请稍后再试！')
@@ -90,7 +90,7 @@ exports.RegisterHandel = (req, res) => {
  */
 exports.LoginHandel = (req, res) => {
   // 验证验证码
-  const sqlVerifyCaptcha = `SELECT captcha FROM ev_code`
+  const sqlVerifyCaptcha = `SELECT captcha FROM sys_code`
   db.query(sqlVerifyCaptcha, (err, result) => {
     if (err) return res.cc(err)
     if (result.length !== 1 || req.body.captcha !== result[0].captcha) {
@@ -98,7 +98,7 @@ exports.LoginHandel = (req, res) => {
     }
 
     // 验证用户名和密码
-    const sql = `select * from ev_users where username=?`
+    const sql = `select * from sys_user where username=?`
     db.query(sql, req.body.username, (err, result) => {
       if (err) return res.cc(err)
       if (result.length !== 1) return res.cc('登录失败,用户名不存在!')
@@ -137,7 +137,7 @@ exports.loginCodeHandel = (req, res) => {
 
   const captcha = svgCaptcha.create(options)
   console.log(captcha.text)
-  const sql = `update ev_code set captcha=?`
+  const sql = `update sys_code set captcha=?`
   db.query(sql, captcha.text, (err, result) => {
     if (err) return res.cc(err)
     if (result.affectedRows !== 1) return res.cc(`验证码失效,请重试`)
