@@ -1,3 +1,6 @@
 module.exports = {
-    jwtSecretKey: 'Shkmzzh'
+    jwtSecretKey: 'Shkmzzh',
+    emailPageStyle:(coed)=>{
+        return ``
+    }
 }  

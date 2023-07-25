@@ -19,6 +19,7 @@ function getRandomCode(length) {
   }
   return code
 }
+const emailStyle = require('../emailStyle')
 exports.CodeHandel = (req, res) => {
   const checkEmailSql = `SELECT email FROM ev_users WHERE email = ?`
   db.query(checkEmailSql, req.body.email, (err, result) => {
@@ -35,10 +36,10 @@ exports.CodeHandel = (req, res) => {
     }
   })
   const mailOptions = {
-    from: 'shkmzzh@163.com',
+    from: 'shkmzzh@163.com', 
     to: req.body.email,
-    subject: '验证码',
-    text: `尊敬的用户欢迎使用 xiaoAdmin 后台管理系统，你的注册验证码为：<strong>${code}</strong>`
+    subject: `XiaoAdmin 验证码:<strong>${code}</strong>`,
+    text: emailStyle.emailPageStyle(code)
   }
   transporter.sendMail(mailOptions, (err, info) => {
     if (err) {
