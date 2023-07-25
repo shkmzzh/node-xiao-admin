@@ -5,7 +5,7 @@ module.exports = {
         cellpadding="0"
         cellspacing="0"
         class="wrapper"
-        style="min-height: 100%; width: 100%; background: linear-gradient(235deg, rgba(252, 237, 240) 0, #d2e3f9 50%, #e7f0fc 100%)"
+        style="min-height: 100%; width: 100%; background: linear-gradient(235deg, rgb(249 151 170) 0, #2e89ff 50%, #dfc2c2 100%)"
       >
         <tbody>
           <tr>
