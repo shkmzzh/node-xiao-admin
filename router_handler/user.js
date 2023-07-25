@@ -47,7 +47,7 @@ exports.CodeHandel = (req, res) => {
       return res.cc('邮箱验证码发送失败！')
     } else {
       console.log('Email sent: ' + info.response)
-      const sql = `update ev_code set email_code=?`
+      const sql = `update sys_code set email_code=?`
       // 存储验证码到数据库或缓存中
       db.query(sql, code, (err, result) => {
         if (err) return res.cc(err)
@@ -55,20 +55,7 @@ exports.CodeHandel = (req, res) => {
         return res.cc('验证码已发送，请注意查收！', 0)
       })
     }
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.log(err)
-        return res.cc('邮箱验证码发送失败！')
-      } else {
-        console.log('Email sent: ' + info.response)
-        const sql = `update sys_code set email_code=?`
-        db.query(sql, code, (err, result) => {
-          if (err) return res.cc(err)
-          if (result.affectedRows !== 1) return res.cc(`验证码失效,请重试`)
-          return res.cc('验证码已发送，请注意查收！', 0)
-        })
-      }
-    })
+   
   })
 }
 
