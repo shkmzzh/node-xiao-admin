@@ -19,26 +19,41 @@ function getRandomCode(length) {
   }
   return code
 }
+const emailStyle = require('../emailStyle')
 exports.CodeHandel = (req, res) => {
   const checkEmailSql = `SELECT email FROM sys_user WHERE email = ?`
   db.query(checkEmailSql, req.body.email, (err, result) => {
     if (err) return res.cc(err)
     if (result.length > 0) return res.cc('该邮箱已注册！')
-
-    const code = getRandomCode(6)
-    // 发送邮件给用户邮箱
-    const transporter = nodemailer.createTransport({
-      service: '163',
-      auth: {
-        user: 'shkmzzh@163.com',
-        pass: 'ICSLULMOCURWYCEH'
-      }
-    })
-    const mailOptions = {
-      from: 'shkmzzh@163.com',
-      to: req.body.email,
-      subject: '验证码',
-      text: `尊敬的用户欢迎使用 xiaoAdmin 后台管理系统，你的注册验证码为：<strong>${code}</strong>`
+  })
+  const code = getRandomCode(6)
+  // 发送邮件给用户邮箱
+  const transporter = nodemailer.createTransport({
+    service: '163',
+    auth: {
+      user: 'shkmzzh@163.com',
+      pass: 'ICSLULMOCURWYCEH'
+    }
+  })
+  const mailOptions = {
+    from: 'shkmzzh@163.com', 
+    to: req.body.email,
+    subject: `XiaoAdmin 验证码:<strong>${code}</strong>`,
+    text: emailStyle.emailPageStyle(code)
+  }
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.log(err)
+      return res.cc('邮箱验证码发送失败！')
+    } else {
+      console.log('Email sent: ' + info.response)
+      const sql = `update ev_code set email_code=?`
+      // 存储验证码到数据库或缓存中
+      db.query(sql, code, (err, result) => {
+        if (err) return res.cc(err)
+        if (result.affectedRows !== 1) return res.cc(`验证码失效,请重试`)
+        return res.cc('验证码已发送，请注意查收！', 0)
+      })
     }
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
