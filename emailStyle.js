@@ -1,6 +1,7 @@
 module.exports = {
     emailPageStyle:(code)=>{
-        return `<table
+        return `
+        <table
         align="center"
         cellpadding="0"
         cellspacing="0"
@@ -14,7 +15,7 @@ module.exports = {
                 <tbody>
                   <tr>
                     <td style="padding: 70px 100px">
-                      <div style="background-color: #fff; width: 62px; height: 60px; margin-bottom: 65px; display: flex;">
+                      <div style="background-color: #fff; min-width: 250px; height: 60px; margin-bottom: 65px; display: flex;">
                         <a href="#" style="cursor: pointer; display: block; width: 72px; height: 70px" target="_blank" title="DMDlink 1" rel="noopener"
                           ><img
                             border="0"

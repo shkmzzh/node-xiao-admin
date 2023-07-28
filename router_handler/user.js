@@ -38,8 +38,8 @@ exports.CodeHandel = (req, res) => {
   const mailOptions = {
     from: 'shkmzzh@163.com', 
     to: req.body.email,
-    subject: `XiaoAdmin 验证码:<strong>${code}</strong>`,
-    text: emailStyle.emailPageStyle(code)
+    subject: `XiaoAdmin后台管理系统 验证码:${code}`,
+    html: emailStyle.emailPageStyle(code)
   }
   transporter.sendMail(mailOptions, (err, info) => {
     if (err) {
